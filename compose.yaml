@@ -1,0 +1,42 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    profiles: [llm]
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - ai-runtime
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  whisper:
+    image: fedirz/faster-whisper-server:latest-cuda
+    profiles: [whisper]
+    ports:
+      - "${WHISPER_PORT:-8100}:8000"
+    environment:
+      WHISPER__MODEL: ${WHISPER_MODEL:-medium}
+      WHISPER__LANGUAGE: ${WHISPER_LANGUAGE:-ja}
+    networks:
+      - ai-runtime
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  ollama_data:
+
+networks:
+  ai-runtime:
+    name: ai-runtime
